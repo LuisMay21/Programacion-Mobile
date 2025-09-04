@@ -1,5 +1,6 @@
+
 import 'package:flutter/material.dart';
-import 'package:rive/math.dart';
+
 import 'package:rive/rive.dart';
 
 
@@ -10,9 +11,22 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  @override
 
+
+class _LoginScreenState extends State<LoginScreen> {
+  
+  StateMachineController? controller;
+
+  SMIBool? isChecking;
+  SMIBool? isHandsUp;
+  SMITrigger? trigSuccess;
+  SMITrigger?trigFail;
+  SMINumber? numLook;
+  
+  
+  
+  
+  @override
   bool  _passwordVisible = false;
 
   Widget build(BuildContext context) {
@@ -32,12 +46,51 @@ body: SafeArea(
         SizedBox(
           //ancho de la pantalla calculado por MQ
           width: size.width,
-          height: 200,
-          child: RiveAnimation.asset('animated_login_character.riv')),
+          height: 400,
+          child: RiveAnimation.asset(
+            'animated_login_character.riv',
+            stateMachines: ["Login Machine"],
+            onInit: (artboard){
+              controller = StateMachineController.fromArtboard(artboard,"Login Machine");
+                // verifica si hay Controlador
+                if (controller==null) return;
+                //agrega Controlador
+                artboard.addController(controller!);
+
+                // enlaza la animacion con la app
+                isChecking = controller!.findSMI("isChecking");
+                isHandsUp = controller!.findSMI("isHandsUp");
+                trigSuccess = controller!.findSMI("trigSuccess");
+                trigFail = controller!.findSMI("trigFail");
+                numLook = controller!.findSMI("numLook");
+            },
+            
+            )),
           
           SizedBox(height: 10),
           
            TextField(
+            onChanged: (value) {
+
+                if(numLook!=null)
+             {
+             numLook!.change(value.length.toDouble());
+             }
+
+              if(isHandsUp!= null)
+              {
+              //no subir las manos al escribir
+                isHandsUp!.change(false);
+                }
+
+             
+
+              //verifica que SMI no sea Nulo
+              if(isChecking==null) return;
+              isChecking!.change(true);
+              
+            },
+
             keyboardType: TextInputType.emailAddress,
             decoration: InputDecoration(
               hintText: "Email",
@@ -54,6 +107,22 @@ body: SafeArea(
           
           
           TextField(
+
+             onChanged: (value) {
+              if(isChecking!= null)
+              {
+              //no subir las manos al escribir
+                isChecking!.change(false);
+               
+              }
+
+              
+              //verifica que SMI no sea Nulo
+              if(isHandsUp==null) return;
+              isHandsUp!.change(true);
+             
+            },
+            
             //para que se oculte
             obscureText: !_passwordVisible,
             decoration: InputDecoration(
@@ -93,8 +162,52 @@ body: SafeArea(
 
          ),
 
-         )
+         ),
+        
+        //Boton de login
+        SizedBox(height: 10),
+        MaterialButton(
+          minWidth: size.width,
+          height: 50,
+          color: Colors.blue,
+          //forma del boton
+          shape: RoundedRectangleBorder(
+          borderRadius: BorderRadiusGeometry.circular(12)
+          ),
+          onPressed: (){},
+          child: const Text("Login",
+          style: TextStyle(color: Colors.white),
+          ),
+           ),
 
+           SizedBox(height: 10),
+
+           SizedBox(
+
+            width: size.width,
+            child: Row(
+            children: [
+
+              const Text("Don´t you have account"),
+              TextButton(
+              onPressed:(){},
+              child:const Text(
+              "Sign up",
+              style: TextStyle(
+                color: Colors.black,
+                //propiedades negritas y underline
+                fontWeight: FontWeight.bold,
+                decoration:TextDecoration.underline
+              ),
+              )
+              )
+            ],
+              
+            ),
+            
+           )
+
+           
 
       ],
     ),
@@ -104,3 +217,5 @@ body: SafeArea(
     );
   }
 }
+
+
